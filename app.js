@@ -2,6 +2,7 @@ require('dotenv').config();
 require('express-async-errors')
 const express = require('express');
 const app = express();
+const port = process.env.PORT || 5000;
 
 //packages
 const morgan = require('morgan');
@@ -44,6 +45,13 @@ app.use(fileUpload());
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 
+app.get("/", (req, res) => {
+  res.send({
+    status: 200,
+    message: "Welcome to Credence v1.0",
+  });
+});
+
 
 //Middleware
 app.use(notFoundMiddleware);
@@ -51,10 +59,6 @@ app.use(errorHandlerMiddleware);
 
 //database
 const connectDB = require('./db/connect');
-
-
-
-const port = process.env.PORT || 5000;
 
 const start = async () => {
     try{
