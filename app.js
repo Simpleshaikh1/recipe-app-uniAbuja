@@ -48,7 +48,7 @@ app.use('/api/v1/users', userRouter);
 app.get("/", (req, res) => {
   res.send({
     status: 200,
-    message: "Welcome to Credence v1.0",
+    message: "Welcome to Sultan Recipe v1.0",
   });
 });
 
