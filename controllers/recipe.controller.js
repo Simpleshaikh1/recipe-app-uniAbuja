@@ -1,4 +1,4 @@
-const Recipe = require('../models/Recipe.model');
+const Recipe = require('../models/recipe.model');
 const User = require('../models/User.model');
 const {StatusCodes} = require('http-status-codes');
 const CustomError = require('../errors');
