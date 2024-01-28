@@ -7,32 +7,38 @@ const {
 } = require('../middleware/authentication');
 
 const {
-    postJob,
-    getAllJobs,
-    updateJobs,
-    deleteJob,
-    jobHistory
+    createRecipe,
+    getAllRecipe,
+    getRecipeByName,
+    updateRecipe,
+    deleteRecipe,
+    allRecipeBelongToUser,
 } = require('../controllers/recipe.controller');
 
 router
-    .route("/post-job")
-    .post(authenticateUsers, authorizePermissions("admin"), postJob);
+    .route("/post-recipe")
+    .post(authenticateUsers, createRecipe);
 
 router
-    .route("/get-job")
-    .get(authenticateUsers, getAllJobs);
+    .route("/get-recipe")
+    .get(authenticateUsers, authorizePermissions("user"), getAllRecipe);
 
 router
-    .route('/update-job/:id')
-    .patch(authenticateUsers, authorizePermissions("admin"), updateJobs)
-
-// router
-//     .route("/delete-job/:id")
-//     .delete(authenticateUsers, authorizePermissions("admin"), deleteJob);
+    .route("/get-recipes-by-user")
+    .get(authenticateUsers, authorizePermissions("user"), allRecipeBelongToUser);
 
 router
-    .route("/get-job-history")
-    .get(authenticateUsers, jobHistory);
+    .route("/get-a-recipe/:recipeName")
+    .get(authenticateUsers, getRecipeByName);
+    
+router
+    .route('/delete-recipe/:recipeId')
+    .delete(authenticateUsers, authorizePermissions("user"), deleteRecipe);
+
+router
+    .route('/update-recipe/:recipeId')
+    .patch(authenticateUsers, authorizePermissions("user"), updateRecipe)
+
 
 
 module.exports = router

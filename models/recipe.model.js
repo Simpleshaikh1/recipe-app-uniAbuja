@@ -1,71 +1,52 @@
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 
-const jobSchema = new mongoose.Schema({
-    companyLogo: {
-        type: String
+const recipeSchema = new mongoose.Schema({
+  recipeImage: {
+    type: String,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  estimatedTime: {
+    type: String,
+    required: true,
+  },
+  ingredients: {
+    type: String,
+    required: true,
+  },
+  category: {
+    type: String,
+    enum: ['main meal', 'appetizer', 'dessert'],
+    required: true,
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', 
+    required: true,
+  },
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
-    companyName: {
-        type: String
-    },
-    jobRole: {
-        type:String
-    },
-    location: {
-        type: String
-    },
-    salary: {
-        type: String
-    },
-    skill: {
-        type: String
-    },
-    postedAt: {
-        type: Date,
-        default: Date.now()
-    },
-    jobDescription: {
-        type: String
-    },
-    responsibility: {
-        type:String
-    },
-    qualification: {
-        type:String
-    },
-    requiredEducationLevel: {
-        type: String
-    },
-    experienceLevel: {
-        type: String
-    },
-    jobType:{
-        type:String
-    },
-    jobRoleType: {
-        type: String
-    },
-    isTrash: {
-        type: Boolean,
-        default: false,
-        select: false
-    },
-    status: {
-        type: String,
-        enum: ['open', 'closed', 'completed'],
-        default: 'open'
-    },
-    appliedUser: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Job'
-        }
-    ]
-      
+  ],
+  isTrash: {
+    type: Boolean,
+    default: false,
+    select: false,
+  },
 });
 
-jobSchema.pre(/^find/, function(next){
-    this.find({isTrash: {$ne: true}});
-    next();
-})
+recipeSchema.pre(/^find/, function (next) {
+  this.find({ isTrash: { $ne: true } });
+  next();
+});
 
-module.exports = mongoose.model('job', jobSchema)
+module.exports = mongoose.model('Recipe', recipeSchema);

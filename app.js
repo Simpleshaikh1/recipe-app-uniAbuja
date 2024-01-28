@@ -18,6 +18,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 //routers
 const authRouter = require('./routes/authRoutes');
 const userRouter = require('./routes/userRoute');
+const recipeRouter = require('./routes/recipeRoute');
 
 
 // middleware
@@ -44,6 +45,7 @@ app.use(fileUpload());
 //ROutes
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/recipes', recipeRouter);
 
 app.get("/", (req, res) => {
   res.send({

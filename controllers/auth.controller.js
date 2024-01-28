@@ -33,21 +33,21 @@ const register = async (req, res) => {
     const isFirstAccount = (await User.countDocuments({})) === 0;
     const role = isFirstAccount ? 'admin' : 'user';
 
-    const OTP = otpGenerator.generate(6, {
-      digits: true,
-      upperCaseAlphabets: false,
-      specialChars: false,
-      lowerCaseAlphabets: false,
-    });
+    // const OTP = otpGenerator.generate(6, {
+    //   digits: true,
+    //   upperCaseAlphabets: false,
+    //   specialChars: false,
+    //   lowerCaseAlphabets: false,
+    // });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedOTP = await bcrypt.hash(OTP, salt);
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedOTP = await bcrypt.hash(OTP, salt);
 
     const userOptions = {
       email,
       password,
       role,
-      otp: hashedOTP,
+      // otp: hashedOTP,
     };
 
     // Create both user and token in a single transaction
@@ -57,14 +57,14 @@ const register = async (req, res) => {
     try {
       user = await User.create([userOptions], { session });
 
-      const userTokenOptions = {
-        refreshToken: hashedOTP, 
-        ip: 'example-ip',
-        userAgent: 'example-user-agent',
-        user: user[0]._id,
-      };
+      // const userTokenOptions = {
+      //   // refreshToken: hashedOTP, 
+      //   ip: 'example-ip',
+      //   userAgent: 'example-user-agent',
+      //   user: user[0]._id,
+      // };
 
-      await Token.create([userTokenOptions], { session });
+      // await Token.create([userTokenOptions], { session });
 
       await session.commitTransaction();
       session.endSession();
@@ -73,18 +73,17 @@ const register = async (req, res) => {
       session.endSession();
       throw error;
     }
-    const origin = 'http://localhost:5000/api/v1'
+    // const origin = 'http://localhost:5000/api/v1'
     
-    await sendVerificationEmail({
-      to: email,
-      OTP: OTP,
-      origin,
-    });
+    // await sendVerificationEmail({
+    //   to: email,
+    //   OTP: OTP,
+    //   origin,
+    // });
    
     res.status(StatusCodes.CREATED).json({
       email: user[0].email,
       msg: 'Success, please check your email to verify',
-      otp: OTP,
     });
   } catch (error) {
     console.error('Error in register:', error);
@@ -98,7 +97,7 @@ const register = async (req, res) => {
 
 const verifyEmail = async (req, res) =>{
 
-    const {token, email} = req.body;
+    const { email} = req.body;
 
     const user = await User.findOne({email});
 
@@ -107,31 +106,31 @@ const verifyEmail = async (req, res) =>{
       throw new CustomError.UnauthenticatedError('Verification failed');
     }
 
-    const otpRecord = await Token.findOne({user: user._id});
+    // const otpRecord = await Token.findOne({user: user._id});
 
-    if (!otpRecord) {
-      return res.status(400).send({
-        responseCode: 400, 
-        status: 'failure',
-        message: "OTP record not found"
-      });
-    }
+    // if (!otpRecord) {
+    //   return res.status(400).send({
+    //     responseCode: 400, 
+    //     status: 'failure',
+    //     message: "OTP record not found"
+    //   });
+    // }
 
-    const isOtpValid = await bcrypt.compare(token, otpRecord.refreshToken);
+    // const isOtpValid = await bcrypt.compare(token, otpRecord.refreshToken);
 
-    if (!isOtpValid) {
-        return res.status(400).send({
-            responseCode: 400,
-            status: 'failure',
-            message: "Invalid OTP"
-        });
-    }
+    // if (!isOtpValid) {
+    //     return res.status(400).send({
+    //         responseCode: 400,
+    //         status: 'failure',
+    //         message: "Invalid OTP"
+    //     });
+    // }
 
     (user.isVerified = true), (user.verified = Date.now());
 
     await user.save();
 
-    await Token.deleteOne({ user: user._id });
+    // await Token.deleteOne({ user: user._id });
 
     res.status(StatusCodes.OK).json({ 
       msg: 'Email Verified' 
@@ -190,7 +189,7 @@ const login = async (req, res, next) =>{
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
     res.status(StatusCodes.OK).json({ user: tokenUser });
 
-    next();
+    // next();
    
 };
 
