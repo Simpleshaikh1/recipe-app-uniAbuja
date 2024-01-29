@@ -26,7 +26,11 @@ const register = async (req, res) => {
 
     const emailAlreadyExist = await User.findOne({ email });
     if (emailAlreadyExist) {
-      throw new CustomError.BadRequestError('Email Already Exists');
+      return res.status(400).send({
+        responseCode: 400,
+        status: 'exist',
+        message: "User already registered"
+      });
     }
 
     // first logged in user should be admin
@@ -87,7 +91,11 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in register:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json('Internal Server Error');
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+      responseCode: 500,
+      statu: 'failed',
+      message: error.message
+    });
   }
 };
 
@@ -103,7 +111,11 @@ const verifyEmail = async (req, res) =>{
 
    
     if(!user){
-      throw new CustomError.UnauthenticatedError('Verification failed');
+      return res.status(400).send({
+        responseCode: 400,
+        status: 'failure',
+        message: "User not found"
+      });
     }
 
     // const otpRecord = await Token.findOne({user: user._id});
@@ -142,23 +154,41 @@ const verifyEmail = async (req, res) =>{
 //issue withh my login and logout to be resolved
 
 const login = async (req, res, next) =>{
+
+  try {
     const {email, password} = req.body;
     if(!email || !password){
-        throw new CustomError.BadRequestError('Please provide email and password');
+      return res.status(400).send({
+        responseCode: 400,
+        status: "failure",
+        message: "Please provide email and password"
+      });
     }
     const user = await User.findOne({email});
     
     if(!user){
-      throw new CustomError.UnauthenticatedError('Invalid Credentials');
+      return res.status(400).send({
+        responseCode: 400,
+        status: "failure",
+        message: "User not found."
+      });
     }
     
     const isPasswordCorrect = await user.comparePassword(password);
     if(!isPasswordCorrect){
-      throw new CustomError.UnauthenticatedError('Invalid Credentials');
+      return res.status(400).send({
+        responseCode: 400,
+        status: "failure",
+        message: "Invalid login credentials"
+      });
     }
     
     if (!user.isVerified) {
-      throw new CustomError.UnauthenticatedError('Please verify your email');
+      return res.status(400).send({
+        responseCode: 400,
+        status: "failure",
+        message: "Please verify your email to login."
+      });
     }
     let tokenUser = createTokenUser(user);
     
@@ -169,14 +199,17 @@ const login = async (req, res, next) =>{
     if(existingToken){
       const {isValid} = existingToken;
       if(!isValid){
-        throw new CustomError.UnauthenticatedError('Invalid Credentials')
+        return res.status(400).send({
+          responseCode: 400,
+          status: "failure",
+          message: "Please use a valid token"
+        });
       }
       refreshToken = existingToken.refreshToken;
       attachCookiesToResponse({res,  user: tokenUser, refreshToken });
       //where cant set header bug is
-      // res.status(StatusCodes.OK).json({user: tokenUser});
+      res.status(StatusCodes.OK).json({user: tokenUser});
       return;
-  
     }
     
   refreshToken = crypto.randomBytes(40).toString('hex');
@@ -189,8 +222,12 @@ const login = async (req, res, next) =>{
   attachCookiesToResponse({ res, user: tokenUser, refreshToken });
     res.status(StatusCodes.OK).json({ user: tokenUser });
 
-    // next();
+    return next();
    
+  } catch (error) {
+    next(error);
+  }
+
 };
 
 //Logout Route
@@ -217,7 +254,9 @@ const logout = async (req, res) => {
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) {
-      throw new CustomError.BadRequestError('Please provide valid email');
+      return res.status(404).send({
+        message: "This email does not exist on Credence."
+      });
     }
   
     const user = await User.findOne({ email });
@@ -256,7 +295,9 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async ({body}, res) => {
     const { token, password, email } = body;
     if (!token ||  !password) {
-      throw new CustomError.BadRequestError('Please provide all values');
+      return res.status(404).send({
+        message: "Please provide token and password"
+      });
     }
     const user = await User.findOne({ email });
   
