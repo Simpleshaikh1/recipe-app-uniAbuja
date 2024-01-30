@@ -9,8 +9,6 @@ const mongoose = require('mongoose');
 const {
     attachCookiesToResponse,
     createTokenUser,
-    sendVerificationEmail,
-    sendResetPasswordEmail,
     createHash,
 } = require('../utils');
 
@@ -191,12 +189,12 @@ const login = async (req, res, next) =>{
       });
     }
     let tokenUser = createTokenUser(user);
-    
+
     let  refreshToken = '';
   
     const existingToken = await Token.findOne({user: user._id});
-   
     if(existingToken){
+
       const {isValid} = existingToken;
       if(!isValid){
         return res.status(400).send({
@@ -205,24 +203,26 @@ const login = async (req, res, next) =>{
           message: "Please use a valid token"
         });
       }
+     
       refreshToken = existingToken.refreshToken;
       attachCookiesToResponse({res,  user: tokenUser, refreshToken });
       //where cant set header bug is
       res.status(StatusCodes.OK).json({user: tokenUser});
-      return;
+      // // return;
     }
     
-  refreshToken = crypto.randomBytes(40).toString('hex');
-  const userAgent = req.headers['user-agent'];
-  const ip = req.ip;
-  const userToken = { refreshToken, ip, userAgent, user: user._id };
+    refreshToken = crypto.randomBytes(40).toString('hex');
+    const userAgent = req.headers['user-agent'];
+    const ip = req.ip;
+    const userToken = { refreshToken, ip, userAgent, user: user._id };
+    
+    await Token.create(userToken);
 
-  await Token.create(userToken);
-
-  attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-    res.status(StatusCodes.OK).json({ user: tokenUser });
-
-    return next();
+    attachCookiesToResponse({ res, user: tokenUser, refreshToken});
+    console.log('here')
+    // res.status(StatusCodes.OK).json({ user: tokenUser });
+    // next();
+    return
    
   } catch (error) {
     next(error);

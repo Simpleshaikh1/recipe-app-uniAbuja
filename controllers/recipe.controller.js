@@ -1,39 +1,34 @@
 const Recipe = require('../models/recipe.model');
+const dotenv = require('dotenv');
 const User = require('../models/User.model');
 const {StatusCodes} = require('http-status-codes');
 const CustomError = require('../errors');
-const path = require('path')
+const path = require('path');
+const cloudinary = require('cloudinary').v2;
+
+dotenv.config();
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 
 const createRecipe = async (req, res) => {
   try {
-    if (!req.files) {
-      return res.status(400).json({
-        msg: "No Image uploaded",
+
+    if (req.files) {
+      const path = req.files.recipeImage.tempFilePath;
+      await cloudinary.uploader.upload(path, function (err, result) {
+          if (err) {
+            return console.log("error while uploading user profile image to server")
+          }
+          req.body.recipeImage = result.secure_url;
       });
     }
-
-    const image = req.files.recipeImage;
-
-    if (!image.mimetype.startsWith("image/png")) {
-      return res.status(400).json({
-        msg: "upload image with .png extension",
-      });
-    }
-
-    const maxSize = 1024 * 1024;
-
-    if (image.size > maxSize) {
-      return res.status(400).json({
-        msg: "upload image smaller than 1MB",
-      });
-    }
-
-    const imagePath = path.join(__dirname, "../public", image.name);
-    await image.mv(imagePath);
 
     const recipe = await Recipe.create({
-      recipeImage: imagePath,
+      recipeImage: req.body.recipeImage || '',
       title: req.body.title,
       description: req.body.description,
       estimatedTime: req.body.estimatedTime,
@@ -54,8 +49,6 @@ const createRecipe = async (req, res) => {
     });
   }
 };
-
-
 
 const getRecipeByName = async (req, res, next) => {
 

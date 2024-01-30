@@ -12,7 +12,7 @@ const isTokenValid = async (token) =>{
 
 };
 
-const attachCookiesToResponse = ({res, user, refreshToken}) =>{
+const attachCookiesToResponse = ({res, user, refreshToken, next}) =>{
     
     const accessTokenJWT = createJWT({payload: {user}});
     const refreshTokenJWT = createJWT({payload: {user, refreshToken}});
@@ -26,18 +26,17 @@ const attachCookiesToResponse = ({res, user, refreshToken}) =>{
         signed: true,
         expires: new Date(Date.now() + oneDay)
     });
-
+  
     res.cookie('refreshToken', refreshTokenJWT, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         signed: true,
         expires: new Date(Date.now() + longExp),
       });
+      res.status(StatusCodes.OK).json({ token: accessTokenJWT, msg: 'successfully logged in', data:user});
 
-     res.status(StatusCodes.OK).json({ token: accessTokenJWT, msg: 'successfully logged in', data:user});
-
-    //  return
-    };
+     return next();
+};
     // console.log('jwt')
 
 module.exports = {
